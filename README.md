@@ -55,13 +55,16 @@ server.js
 Getting Started
 
 1. Clone the Repository:
-   `bash git clone https://github.com/your-username/dog-trainer-backend.git`
+
+   ` git clone https://github.com/your-username/dog-trainer-backend.git`
 
 2.install Dependencies:
+
 `npm install`
 
 3. Set Up MongoDB:
    Create a MongoDB database and configure the connection in db.js.
 
 4.Run the Server:
+
 ` npm start`

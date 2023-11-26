@@ -1,6 +1,7 @@
 const TheDogApi = 'https://api.thedogapi.com/v1'
 const DogData = require('../models/DogData')
 
+//generate image and save them in the data base
 const HomepageDogImages = async () => {
   let data // Declare data outside the try block
 
@@ -22,16 +23,11 @@ const HomepageDogImages = async () => {
           'x-api-key': apiKey,
         },
       })
-
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`)
       }
-
       data = await response.json()
-
-      // Save data to MongoDB
       await DogData.create({ apiName: 'homepageDogImages', data })
-
       console.log('Data saved to MongoDB')
     }
 
@@ -41,9 +37,9 @@ const HomepageDogImages = async () => {
     throw error
   }
 }
-
+//generate a random fact about dogs
 const fetchDogsBreeds = async () => {
-  let data // Declare data outside the try block
+  let data
 
   try {
     const existingData = await DogData.findOne({ apiName: 'dogsBreeds' })
@@ -67,12 +63,8 @@ const fetchDogsBreeds = async () => {
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`)
       }
-
       data = await response.json()
-
-      // Save data to MongoDB
       await DogData.create({ apiName: 'dogsBreeds', data })
-
       console.log('Data saved to MongoDB')
       return data
     }

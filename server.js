@@ -16,8 +16,6 @@ const saveDataToDatabase = async () => {
   try {
     const dogsImagesData = await fetchDogsBreeds()
     const homepageDogImagesData = await HomepageDogImages()
-
-    // Save data to MongoDB
     await DogData.create({ apiName: 'dogsImages', data: dogsImagesData })
     await DogData.create({
       apiName: 'homepageDogImages',

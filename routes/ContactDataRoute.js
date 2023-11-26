@@ -4,13 +4,11 @@ const ContactData = require('../models/ContactData')
 
 const router = express.Router()
 
+//post a user review
 router.post('/', async (req, res) => {
   try {
     const { fullName, email, message } = req.body
-
-    // Save data to MongoDB
     await ContactData.create({ fullName, email, message })
-
     console.log('Contact data saved to MongoDB')
     res.status(201).json({ message: 'Contact data saved successfully' })
   } catch (error) {
@@ -19,7 +17,7 @@ router.post('/', async (req, res) => {
   }
 })
 
-// Route to retrieve all contact data
+// Route to retrieve all reviews data
 router.get('/', async (req, res) => {
   try {
     const contactData = await ContactData.find()
@@ -31,4 +29,19 @@ router.get('/', async (req, res) => {
   }
 })
 
+// DELETE a review by ID
+router.delete('/:id', async (req, res) => {
+  const reviewId = req.params.id
+  try {
+    const deletedReview = await ContactData.findByIdAndDelete(reviewId)
+    if (deletedReview) {
+      res.json({ message: 'Review deleted successfully' })
+    } else {
+      res.status(404).json({ message: 'Review not found' })
+    }
+  } catch (error) {
+    console.error('Error deleting contact data from MongoDB:', error)
+    res.status(500).send('Internal Server Error')
+  }
+})
 module.exports = router

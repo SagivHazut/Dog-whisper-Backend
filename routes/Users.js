@@ -24,6 +24,29 @@ function authenticateToken(req, res, next) {
     next()
   })
 }
+function authenticateAdminToken(req, res, next) {
+  const token = req.headers.authorization
+
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized' })
+  }
+
+  jwt.verify(token, secretKey, (err, user) => {
+    if (err) {
+      return res.status(403).json({ message: 'Token is not valid' })
+    }
+
+    if (!user.admin) {
+      return res
+        .status(403)
+        .json({ message: 'Unauthorized. Admin access required.' })
+    }
+
+    req.user = user
+    next()
+  })
+}
+
 // Register a new user
 function generateRandomColor() {
   return '#' + Math.floor(Math.random() * 16777215).toString(16)
@@ -62,7 +85,7 @@ router.post('/register', async (req, res) => {
           activity: '',
         },
       ],
-      lastReset: new Date(), // Initialize lastReset with the registration date
+      lastReset: new Date(),
     })
 
     await newUser.save()
@@ -87,15 +110,11 @@ router.post('/login', async (req, res) => {
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Invalid credentials' })
     }
-
-    // Generate JWT token
     const token = jwt.sign(
       { email: user.email, admin: user.admin },
       secretKey,
-      { expiresIn: '1h' } // Set the expiration time as needed
+      { expiresIn: '1h' }
     )
-
-    // Include the token in the user array
     const userWithToken = { ...user.toObject(), token }
 
     res.json(userWithToken)
@@ -145,29 +164,6 @@ router.put('/update-training-days', authenticateToken, async (req, res) => {
     res.status(500).json({ message: 'Internal Server Error' })
   }
 })
-
-function authenticateAdminToken(req, res, next) {
-  const token = req.headers.authorization
-
-  if (!token) {
-    return res.status(401).json({ message: 'Unauthorized' })
-  }
-
-  jwt.verify(token, secretKey, (err, user) => {
-    if (err) {
-      return res.status(403).json({ message: 'Token is not valid' })
-    }
-
-    if (!user.admin) {
-      return res
-        .status(403)
-        .json({ message: 'Unauthorized. Admin access required.' })
-    }
-
-    req.user = user
-    next()
-  })
-}
 
 // Update first name
 router.put('/update-first-name/:id', async (req, res) => {

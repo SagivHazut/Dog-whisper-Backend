@@ -3,6 +3,7 @@ const mongoose = require('./db')
 const cors = require('cors')
 const DogData = require('./models/DogData')
 const { HomepageDogImages, fetchDogsBreeds } = require('./routes/dogsApis')
+const usersRoute = require('./routes/users')
 const ContactDataRoute = require('./routes/ContactDataRoute')
 
 const app = express()
@@ -28,6 +29,9 @@ const saveDataToDatabase = async () => {
     console.error('Error saving data to MongoDB:', error)
   }
 }
+
+// users route from the imported users
+app.use('/api', usersRoute)
 
 // Endpoint to retrieve data from MongoDB
 app.get('/api/data/:apiName', async (req, res) => {

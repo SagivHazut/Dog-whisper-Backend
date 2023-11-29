@@ -83,6 +83,15 @@ router.post('/register', async (req, res) => {
           day: '',
           hour: 1,
           activity: '',
+          date: '',
+        },
+      ],
+      previousTrainings: [
+        {
+          day: '',
+          hour: 1,
+          activity: '',
+          date: '',
         },
       ],
       lastReset: new Date(),
@@ -125,7 +134,7 @@ router.post('/login', async (req, res) => {
 })
 
 // get the user data route
-router.get('/user/:id', authenticateToken, async (req, res) => {
+router.get('/user/:id', async (req, res) => {
   try {
     const userId = req.params.id
     const user = await User.findById(userId)
@@ -139,6 +148,7 @@ router.get('/user/:id', authenticateToken, async (req, res) => {
   }
 })
 
+// getting all the users data
 router.get('/users', async (req, res) => {
   try {
     const users = await User.find({}, { password: 0 })
@@ -151,16 +161,50 @@ router.get('/users', async (req, res) => {
 })
 
 //updating the user training sceduale
-router.put('/update-training-days', authenticateToken, async (req, res) => {
+router.put('/update-training-days/:id', async (req, res) => {
   try {
     const { trainingDays } = req.body
-    console.log(trainingDays)
-    const userId = req.user.email
-    await User.updateOne({ email: userId }, { $set: { trainingDays } })
+    const userId = req.params.id
+
+    await User.updateOne(
+      { _id: userId },
+      {
+        $set: {
+          trainingDays,
+        },
+      }
+    )
 
     res.json({ message: 'Training days updated successfully' })
   } catch (error) {
     console.error('Error updating training days:', error)
+    res.status(500).json({ message: 'Internal Server Error' })
+  }
+})
+
+// Route to add new previousTrainings without modifying existing ones
+router.post('/update-previous-trainings/:id', async (req, res) => {
+  try {
+    const { previousTrainings } = req.body
+    const userId = req.params.id
+    const currentUser = await User.findById(userId)
+    const updatedPreviousTrainings = [
+      ...currentUser.previousTrainings,
+      ...previousTrainings,
+    ]
+
+    await User.updateOne(
+      { _id: userId },
+      {
+        $set: {
+          previousTrainings: updatedPreviousTrainings,
+        },
+      }
+    )
+
+    res.json({ message: 'Previous trainings updated successfully' })
+  } catch (error) {
+    console.error('Error updating previous trainings:', error)
     res.status(500).json({ message: 'Internal Server Error' })
   }
 })
@@ -206,4 +250,23 @@ router.put('/updateEmail/:id', async (req, res) => {
     res.status(500).json({ message: 'Internal Server Error' })
   }
 })
+
+// changing  the password
+router.put('/update-password/:id', authenticateToken, async (req, res) => {
+  try {
+    const { newPassword } = req.body
+    const userId = req.params.id
+    const hashedPassword = await bcrypt.hash(newPassword, 10)
+    await User.findOneAndUpdate(
+      { _id: userId },
+      { $set: { password: hashedPassword } }
+    )
+
+    res.json({ message: 'Password updated successfully' })
+  } catch (error) {
+    console.error('Error updating password:', error)
+    res.status(500).json({ message: 'Internal Server Error' })
+  }
+})
+
 module.exports = router

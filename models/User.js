@@ -13,8 +13,18 @@ const userSchema = new mongoose.Schema({
       day: { type: String },
       hour: { type: Number },
       activity: { type: String },
+      date: { type: String },
     },
   ],
+  previousTrainings: [
+    {
+      day: { type: String },
+      hour: { type: Number },
+      activity: { type: String },
+      date: { type: String },
+    },
+  ],
+
   lastReset: { type: Date },
 })
 

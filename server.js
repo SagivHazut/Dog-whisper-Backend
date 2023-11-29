@@ -7,29 +7,16 @@ const usersRoute = require('./routes/users')
 const ContactDataRoute = require('./routes/ContactDataRoute')
 
 const app = express()
-const port = process.env.PORT || 8080
+const port = process.env.PORT
 
 app.use(express.json())
 app.use(cors())
 
-const saveDataToDatabase = async () => {
-  try {
-    const dogsImagesData = await fetchDogsBreeds()
-    const homepageDogImagesData = await HomepageDogImages()
-    await DogData.create({ apiName: 'dogsImages', data: dogsImagesData })
-    await DogData.create({
-      apiName: 'homepageDogImages',
-      data: homepageDogImagesData,
-    })
-
-    console.log('Data saved to MongoDB')
-  } catch (error) {
-    console.error('Error saving data to MongoDB:', error)
-  }
-}
-
 // users route from the imported users
 app.use('/api', usersRoute)
+
+// reviews route from the imported ContactDataRoute
+app.use('/api/contact', ContactDataRoute)
 
 // Endpoint to retrieve data from MongoDB
 app.get('/api/data/:apiName', async (req, res) => {
@@ -49,9 +36,22 @@ app.get('/api/data/:apiName', async (req, res) => {
   }
 })
 
-app.use('/api/contact', ContactDataRoute)
+const saveDataToDatabase = async () => {
+  try {
+    const dogsImagesData = await fetchDogsBreeds()
+    const homepageDogImagesData = await HomepageDogImages()
+    await DogData.create({ apiName: 'dogsImages', data: dogsImagesData })
+    await DogData.create({
+      apiName: 'homepageDogImages',
+      data: homepageDogImagesData,
+    })
 
-// Start the server and save data to MongoDB when it starts
+    console.log('Data saved to MongoDB')
+  } catch (error) {
+    console.error('Error saving data to MongoDB:', error)
+  }
+}
+
 app.listen(port, async () => {
   console.log(`Server is running on port ${port}`)
   await saveDataToDatabase()

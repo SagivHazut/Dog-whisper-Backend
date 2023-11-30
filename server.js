@@ -40,7 +40,7 @@ const saveDataToDatabase = async () => {
   try {
     const dogsImagesData = await fetchDogsBreeds()
     const homepageDogImagesData = await HomepageDogImages()
-    await DogData.create({ apiName: 'dogsImages', data: dogsImagesData })
+    await DogData.create({ apiName: 'dogsBreeds', data: dogsImagesData })
     await DogData.create({
       apiName: 'homepageDogImages',
       data: homepageDogImagesData,

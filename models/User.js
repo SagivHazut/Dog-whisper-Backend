@@ -8,6 +8,7 @@ const userSchema = new mongoose.Schema({
   color: { type: String, required: true },
   admin: { type: Boolean },
   customer: { type: Boolean },
+  token: { type: String },
   trainingDays: [
     {
       day: { type: String },

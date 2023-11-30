@@ -8,45 +8,6 @@ const crypto = require('crypto')
 // Secret key for signing the token
 const secretKey = crypto.randomBytes(32).toString('hex')
 
-function authenticateToken(req, res, next) {
-  const token = req.headers.authorization
-
-  if (!token) {
-    return res.status(401).json({ message: 'Unauthorized' })
-  }
-
-  jwt.verify(token, secretKey, (err, user) => {
-    if (err) {
-      return res.status(403).json({ message: 'Token is not valid' })
-    }
-
-    req.user = user
-    next()
-  })
-}
-function authenticateAdminToken(req, res, next) {
-  const token = req.headers.authorization
-
-  if (!token) {
-    return res.status(401).json({ message: 'Unauthorized' })
-  }
-
-  jwt.verify(token, secretKey, (err, user) => {
-    if (err) {
-      return res.status(403).json({ message: 'Token is not valid' })
-    }
-
-    if (!user.admin) {
-      return res
-        .status(403)
-        .json({ message: 'Unauthorized. Admin access required.' })
-    }
-
-    req.user = user
-    next()
-  })
-}
-
 // Register a new user
 function generateRandomColor() {
   return '#' + Math.floor(Math.random() * 16777215).toString(16)
@@ -86,19 +47,17 @@ router.post('/register', async (req, res) => {
           date: '',
         },
       ],
-      previousTrainings: [
-        {
-          day: '',
-          hour: 1,
-          activity: '',
-          date: '',
-        },
-      ],
+      previousTrainings: [],
       lastReset: new Date(),
     })
+    const token = jwt.sign({ email: newUser.email }, secretKey, {
+      expiresIn: '365d',
+    })
+
+    newUser.token = token
 
     await newUser.save()
-    res.status(201).json(newUser)
+    res.status(201).json({ user: newUser, token })
   } catch (error) {
     console.error('Error registering user:', error)
     res.status(500).json({ message: 'Internal Server Error' })
@@ -119,12 +78,7 @@ router.post('/login', async (req, res) => {
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Invalid credentials' })
     }
-    const token = jwt.sign(
-      { email: user.email, admin: user.admin },
-      secretKey,
-      { expiresIn: '1h' }
-    )
-    const userWithToken = { ...user.toObject(), token }
+    const userWithToken = { ...user.toObject() }
 
     res.json(userWithToken)
   } catch (error) {
@@ -252,7 +206,7 @@ router.put('/updateEmail/:id', async (req, res) => {
 })
 
 // changing  the password
-router.put('/update-password/:id', authenticateToken, async (req, res) => {
+router.put('/update-password/:id', async (req, res) => {
   try {
     const { newPassword } = req.body
     const userId = req.params.id
